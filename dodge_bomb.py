@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import time
 import pygame as pg
 
 
@@ -14,6 +15,35 @@ DELTA = {
     #最後","を付ける
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+def gameover(screen: pg.Surface) -> None: # 課題1:ゲームオーバー画面
+    # 1.
+    go_img = pg.Surface((WIDTH, HEIGHT))
+    go_img.fill((0,0,0))
+    # 2.
+    go_img.set_alpha(200)
+    # 3.
+    go_font = pg.font.Font(None, 100)
+    txt = go_font.render("Game Over", True,(255,255,255))
+    txt_rect = txt.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+    # 4.
+    kouka_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    kouka2_img = kouka_img
+    kouka_rct = kouka_img.get_rect(center=(WIDTH // 2 - 225, HEIGHT // 2 + 50))
+    kouka2_rct = kouka_img.get_rect(center=(WIDTH // 2 + 225, HEIGHT // 2 + 50))
+    # 5.
+    screen.blit(go_img,(0,0))
+    screen.blit(txt,txt_rect)
+    screen.blit(kouka_img, kouka_rct)
+    screen.blit(kouka2_img, kouka2_rct)
+
+    # 6.
+    pg.display.update()
+    time.sleep(5)
+
+
+
 
 
 def check_bound(rct: pg.Rect) -> tuple[bool,bool]:
@@ -53,7 +83,8 @@ def main():
                 return
         screen.blit(bg_img, [0, 0]) 
         if kk_rct.colliderect(bb_rct): #こうかとんと爆弾の衝突判定
-            return #ゲームオーバー
+            gameover(screen)
+            return  #ゲームオーバー
 
 
         key_lst = pg.key.get_pressed()
