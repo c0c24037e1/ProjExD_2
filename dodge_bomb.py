@@ -41,7 +41,7 @@ def gameover(screen: pg.Surface) -> None: # 課題1:ゲームオーバー画面
 
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     """
-    爆弾のSurface(サイズ違い10段階)と、加速係数(1..10)のリストを作って返す
+    爆弾のSurface(サイズ違い10段階)と、加速係数(1..10)のリストを作って返すようにする
     """
     bb_imgs: list[pg.Surface] = []
     for r in range(1, 11):
