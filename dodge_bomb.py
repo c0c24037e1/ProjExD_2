@@ -18,27 +18,23 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 
 def gameover(screen: pg.Surface) -> None: # 課題1:ゲームオーバー画面
-    # 1.
     go_img = pg.Surface((WIDTH, HEIGHT))
-    go_img.fill((0,0,0))
-    # 2.
+    go_img.fill((0,0,0)) # 背景を埋める
     go_img.set_alpha(200)
-    # 3.
+    # テキスト
     go_font = pg.font.Font(None, 100)
     txt = go_font.render("Game Over", True,(255,255,255))
     txt_rect = txt.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
-    # 4.
+    # 画像
     kouka_img = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
     kouka2_img = kouka_img
     kouka_rct = kouka_img.get_rect(center=(WIDTH // 2 - 225, HEIGHT // 2 + 50))
     kouka2_rct = kouka_img.get_rect(center=(WIDTH // 2 + 225, HEIGHT // 2 + 50))
-    # 5.
     screen.blit(go_img,(0,0))
     screen.blit(txt,txt_rect)
     screen.blit(kouka_img, kouka_rct)
     screen.blit(kouka2_img, kouka2_rct)
 
-    # 6.
     pg.display.update()
     time.sleep(5)
 
@@ -62,20 +58,23 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
 def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     """
     合計移動量タプル -> 向きに応じたSurface
-    ※元画像(fig/3.png)は「左向き」想定
+    元画像(fig/3.png)は「左向き」
     """
     kk_base = pg.image.load("fig/3.png")
-    return {
-        ( 0,  0): pg.transform.rotozoom(kk_base,    0, 0.9),   # 停止（左）
-        (+5,  0): pg.transform.rotozoom(kk_base,  180, 0.9),   # 右
-        (-5,  0): pg.transform.rotozoom(kk_base,    0, 0.9),   # 左
-        (+5, -5): pg.transform.rotozoom(kk_base,  135, 0.9),   # 右上
-        ( 0, -5): pg.transform.rotozoom(kk_base,   90, 0.9),   # 上
-        (-5, -5): pg.transform.rotozoom(kk_base,   45, 0.9),   # 左上
-        (+5, +5): pg.transform.rotozoom(kk_base, -135, 0.9),   # 右下
-        ( 0, +5): pg.transform.rotozoom(kk_base,  -90, 0.9),   # 下
-        (-5, +5): pg.transform.rotozoom(kk_base,  -45, 0.9),   # 左下
+    flipped_image = pg.transform.flip(kk_base, True, False) 
+    kk_dict = { 
+        ( 0, 0): pg.transform.rotozoom(kk_base,  0, 0.9),  # キー押下がない場合（左）
+        (+5, 0): pg.transform.flip(kk_base, True, False),  # 右
+        (-5, 0): pg.transform.rotozoom(kk_base,  0, 0.9),  # 左
+        (+5,-5): pg.transform.rotozoom(flipped_image,  45, 0.9),  # 右上
+        ( 0,-5): pg.transform.rotozoom(kk_base,    -90, 0.9),     # 上
+        (-5,-5): pg.transform.rotozoom(kk_base,    -45, 0.9),     # 左上
+        (+5,+5): pg.transform.rotozoom(flipped_image, -45, 0.9),  # 右下 ← 修正
+        ( 0,+5): pg.transform.rotozoom(kk_base,     90, 0.9),     # 下
+        (-5,+5): pg.transform.rotozoom(kk_base,     45, 0.9),     # 左下
     }
+    return kk_dict
+
 
 
 def check_bound(rct: pg.Rect) -> tuple[bool,bool]:
