@@ -59,6 +59,24 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     return bb_imgs, bb_accs
 
 
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """
+    合計移動量タプル -> 向きに応じたSurface
+    ※元画像(fig/3.png)は「左向き」想定
+    """
+    kk_base = pg.image.load("fig/3.png")
+    return {
+        ( 0,  0): pg.transform.rotozoom(kk_base,    0, 0.9),   # 停止（左）
+        (+5,  0): pg.transform.rotozoom(kk_base,  180, 0.9),   # 右
+        (-5,  0): pg.transform.rotozoom(kk_base,    0, 0.9),   # 左
+        (+5, -5): pg.transform.rotozoom(kk_base,  135, 0.9),   # 右上
+        ( 0, -5): pg.transform.rotozoom(kk_base,   90, 0.9),   # 上
+        (-5, -5): pg.transform.rotozoom(kk_base,   45, 0.9),   # 左上
+        (+5, +5): pg.transform.rotozoom(kk_base, -135, 0.9),   # 右下
+        ( 0, +5): pg.transform.rotozoom(kk_base,  -90, 0.9),   # 下
+        (-5, +5): pg.transform.rotozoom(kk_base,  -45, 0.9),   # 左下
+    }
+
 
 def check_bound(rct: pg.Rect) -> tuple[bool,bool]:
     """
@@ -78,17 +96,18 @@ def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+
+    kk_dict = get_kk_imgs()
+    kk_img = kk_dict[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
-
 
     bb_imgs, bb_accs = init_bb_imgs()
     bb_img = bb_imgs[0]
     bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0,WIDTH) # 爆弾用横
     bb_rct.centery = random.randint(0,HEIGHT) # 爆弾用縦
-    vx, vy = +5, +5 # 爆弾の速度(基準)
+    vx, vy = +5, +5 # 爆弾の速度
 
     clock = pg.time.Clock()
     tmr = 0
@@ -110,25 +129,33 @@ def main():
                 sum_mv[0] += mv[0] #横方向
                 sum_mv[1] += mv[1] #縦方向
 
+#ctrl / で範囲内をすべてコメントアウト
+        # if key_lst[pg.K_UP]:
+        #    sum_mv[1] -= 5
+        # if key_lst[pg.K_DOWN]:
+        #    sum_mv[1] += 5
+        # if key_lst[pg.K_LEFT]:
+        #    sum_mv[0] -= 5
+        # if key_lst[pg.K_RIGHT]:
+        #   sum_mv[0] += 5
+        kk_img = kk_dict.get(tuple(sum_mv), kk_dict[(0, 0)])
+
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
 
-
-        level = min(tmr // 500, 9)                   # 時間で段階UP
-        if bb_img is not bb_imgs[level]:             # 画像サイズ変更時だけ中心維持でRect取り直し
+        level = min(tmr // 500, 9)
+        if bb_img is not bb_imgs[level]:
             bb_rct = bb_imgs[level].get_rect(center=bb_rct.center)
             bb_img = bb_imgs[level]
-        avx, avy = vx * bb_accs[level], vy * bb_accs[level]  # 加速反映
+        avx, avy = vx * bb_accs[level], vy * bb_accs[level]
 
-        # 爆弾移動（ここだけ avx, avy に差し替え）
-        bb_rct.move_ip(avx,vy if False else avy) # 爆弾移動
+        bb_rct.move_ip(avx, avy) # 爆弾移動
         yoko, tate = check_bound(bb_rct)
         if not yoko: # 横にはみ出ていたら
             vx *= -1
         if not tate: # 縦にはみ出ていたら
             vy *= -1
-
         screen.blit(kk_img, kk_rct)
         screen.blit(bb_img, bb_rct) #爆弾を描画
         pg.display.update()
